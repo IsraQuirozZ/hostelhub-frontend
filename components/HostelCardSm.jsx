@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { colors } from "../constants/colors";
+import { useRouter } from "expo-router";
 
 const HOSTEL_IMAGES = [
   "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400",
@@ -12,29 +13,34 @@ const HOSTEL_IMAGES = [
 
 export default function HostelCard({ hostel, index = 0 }) {
   const image = HOSTEL_IMAGES[index % HOSTEL_IMAGES.length];
+  const router = useRouter();
 
   return (
-    <View style={styles.card}>
-      <Image source={{ uri: image }} style={styles.image} />
-      <View style={styles.body}>
-        <Text style={styles.name} numberOfLines={2}>
-          {hostel.nombre}
-        </Text>
-        <View style={styles.row}>
-          <Ionicons
-            name="location-outline"
-            size={12}
-            color={colors.text.muted}
-          />
-          <Text style={styles.city}>{hostel.ciudad?.nombre}</Text>
-        </View>
-        <View style={styles.row}>
-          <Ionicons name="star" size={13} color="#F0B429" />
-          <Text style={styles.rating}>{hostel.promedio_rating ?? "—"}</Text>
-          <Text style={styles.capacity}>· {hostel.capacidad} personas</Text>
+    <TouchableOpacity
+      onPress={() => router.push(`/hostel/${hostel.id_hostal}`)}
+    >
+      <View style={styles.card}>
+        <Image source={{ uri: image }} style={styles.image} />
+        <View style={styles.body}>
+          <Text style={styles.name} numberOfLines={2}>
+            {hostel.nombre}
+          </Text>
+          <View style={styles.row}>
+            <Ionicons
+              name="location-outline"
+              size={12}
+              color={colors.text.muted}
+            />
+            <Text style={styles.city}>{hostel.ciudad?.nombre}</Text>
+          </View>
+          <View style={styles.row}>
+            <Ionicons name="star" size={13} color="#F0B429" />
+            <Text style={styles.rating}>{hostel.promedio_rating ?? "—"}</Text>
+            <Text style={styles.capacity}>· {hostel.capacidad} personas</Text>
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

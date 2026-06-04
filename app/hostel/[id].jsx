@@ -122,6 +122,14 @@ export default function HostelDetailScreen() {
     return Math.round(diff / (1000 * 60 * 60 * 24));
   };
 
+  const formatShortDate = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+    });
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -378,13 +386,13 @@ export default function HostelDetailScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <View>
+          <View style={{ gap: 4 }}>
             <Text style={styles.footerPrice}>
               {hostel?.habitaciones?.[0]?.precio_base ?? "—"} €
             </Text>
             <Text style={styles.footerNights}>
               {getNights() > 0
-                ? `${getNights()} nights: ${checkIn} - ${checkOut}`
+                ? `${getNights()} nights: ${formatShortDate(checkIn)} - ${formatShortDate(checkOut)}`
                 : "Selecciona fechas"}
             </Text>
             <Text style={styles.footerPolicy}>Non-refundable</Text>
