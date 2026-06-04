@@ -1,13 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { colors } from "../constants/colors";
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, onPress }) {
   const { titulo, contenido, promedio_rating, usuario, foto_url } = post;
 
   const stars = Math.round(promedio_rating ?? 0);
 
-  return (
+  const content = (
     <View style={[styles.card, !foto_url && styles.cardWithoutImage]}>
       {/* Imagen cuadrada */}
       {foto_url && (
@@ -48,15 +48,27 @@ export default function PostCard({ post }) {
       </Text>
     </View>
   );
+
+  if (onPress) {
+    return <TouchableOpacity onPress={onPress}>{content}</TouchableOpacity>;
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({
   card: {
-    width: 220,
+    width: 250,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 12,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.border.default,
   },
   image: {
-    width: 220,
-    height: 220,
+    width: "100%",
+    aspectRatio: 1,
     borderRadius: 16,
     marginBottom: 10,
   },
@@ -85,9 +97,6 @@ const styles = StyleSheet.create({
   stars: { flexDirection: "row", gap: 2, marginBottom: 6 },
   contenido: { fontSize: 13, color: colors.text.secondary, lineHeight: 19 },
   cardWithoutImage: {
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 16,
-    padding: 12,
+    width: 280,
   },
 });
