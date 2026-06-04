@@ -41,6 +41,10 @@ export default function HostelsScreen() {
   // HOSTALS
   const [hostels, setHostels] = useState([]);
 
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState(2);
+
   useEffect(() => {
     if (query) {
       hostelService
@@ -89,7 +93,15 @@ export default function HostelsScreen() {
 
       {/* SearchFilterBar */}
       <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-        <SearchFilterCard ciudad={query} />
+        <SearchFilterCard
+          ciudad={query}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          guests={guests}
+          onCheckInChange={setCheckIn}
+          onCheckOutChange={setCheckOut}
+          onGuestsChange={setGuests}
+        />
       </View>
 
       {/* Map */}
@@ -120,7 +132,14 @@ export default function HostelsScreen() {
       <View style={{ paddingHorizontal: 16, marginTop: 30 }}>
         <Text style={styles.sectionTitle}>Hostels</Text>
         {hostels.map((h, index) => (
-          <HostelCardLg key={h.id_hostal} hostel={h} index={index} />
+          <HostelCardLg
+            key={h.id_hostal}
+            hostel={h}
+            index={index}
+            checkIn={checkIn}
+            checkOut={checkOut}
+            guests={guests}
+          />
         ))}
       </View>
     </ScrollView>
