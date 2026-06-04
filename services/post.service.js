@@ -20,13 +20,9 @@ export const postService = {
     const { data } = await api.get(`/posts/${id}`);
     return data.data;
   },
-  async createPost({ titulo, contenido, id_ciudad, nombre_lugar }) {
-    const { data } = await api.post("/posts", {
-      titulo,
-      contenido,
-      id_ciudad,
-      ...(nombre_lugar && { nombre_lugar }),
-    });
+
+  async createPost(postData) {
+    const { data } = await api.post("/posts", postData);
     return data;
   },
 };
