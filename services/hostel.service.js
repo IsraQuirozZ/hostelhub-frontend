@@ -7,8 +7,13 @@ export const hostelService = {
   },
 
   async getHostels(search = "") {
-    const url = search ? `/hostels?search=${search}` : "/hostels";
+    const url = search ? `/hostels?city=${search}` : "/hostels";
     const { data } = await api.get(url);
+    return data.data;
+  },
+
+  async getHostelsByCity(cityName) {
+    const { data } = await api.get(`/hostels?city=${cityName}`);
     return data.data;
   },
 

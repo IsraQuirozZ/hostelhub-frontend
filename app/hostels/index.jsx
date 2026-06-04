@@ -15,6 +15,8 @@ import { colors } from "../../constants/colors";
 import { useEffect, useState } from "react";
 import PostCard from "../../components/PostCard";
 import { postService } from "../../services/post.service";
+import HostelCardLg from "../../components/HostelCardLg";
+import { hostelService } from "../../services/hostel.service";
 
 const CITY_IMAGES = {
   Madrid: require("../../assets/images/cities/madrid.jpg"),
@@ -27,6 +29,7 @@ const CITY_IMAGES = {
 const FALLBACK = require("../../assets/images/cities/barcelona.jpg");
 
 export default function HostelsScreen() {
+  // POSTS
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
@@ -34,6 +37,18 @@ export default function HostelsScreen() {
       postService.getPostsByCityId(cityId).then(setPosts).catch(console.error);
     }
   }, [cityId]);
+
+  // HOSTALS
+  const [hostels, setHostels] = useState([]);
+
+  useEffect(() => {
+    if (query) {
+      hostelService
+        .getHostelsByCity(query)
+        .then(setHostels)
+        .catch(console.error);
+    }
+  }, [query]);
 
   const { query, cityId } = useLocalSearchParams();
   const router = useRouter();
@@ -92,13 +107,21 @@ export default function HostelsScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 30 }}
+            contentContainerStyle={{ gap: 30, alignItems: "center" }}
           >
             {posts.map((p) => (
               <PostCard key={p.id_post} post={p} />
             ))}
           </ScrollView>
         )}
+      </View>
+
+      {/* Hostels */}
+      <View style={{ paddingHorizontal: 16, marginTop: 30 }}>
+        <Text style={styles.sectionTitle}>Hostels</Text>
+        {hostels.map((h, index) => (
+          <HostelCardLg key={h.id_hostal} hostel={h} index={index} />
+        ))}
       </View>
     </ScrollView>
   );

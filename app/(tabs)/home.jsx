@@ -188,7 +188,7 @@ export default function ExplorarScreen() {
               <Pressable
                 key={ciudad.id_ciudad}
                 style={styles.worldItem}
-                onPress={() => goToResults(ciudad.nombre)}
+                onPress={() => handleCityPress(ciudad)}
               >
                 <View style={styles.worldDot} />
                 <Text style={styles.worldCity}>{ciudad.nombre}</Text>

@@ -8,7 +8,7 @@ export default function PostCard({ post }) {
   const stars = Math.round(promedio_rating ?? 0);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, !foto_url && styles.cardWithoutImage]}>
       {/* Imagen cuadrada */}
       {foto_url && (
         <Image
@@ -84,4 +84,10 @@ const styles = StyleSheet.create({
   avatarText: { fontSize: 12, fontWeight: "700", color: "#FFFFFF" },
   stars: { flexDirection: "row", gap: 2, marginBottom: 6 },
   contenido: { fontSize: 13, color: colors.text.secondary, lineHeight: 19 },
+  cardWithoutImage: {
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    borderRadius: 16,
+    padding: 12,
+  },
 });
