@@ -45,7 +45,39 @@ export default function HostelDetailScreen() {
   const [checkIn, setCheckIn] = useState(checkInParam ?? "");
   const [checkOut, setCheckOut] = useState(checkOutParam ?? "");
   const [guests, setGuests] = useState(guestsParam ? Number(guestsParam) : 2);
-  const [markedDates, setMarkedDates] = useState({});
+  const [markedDates, setMarkedDates] = useState(() => {
+    if (!checkInParam || !checkOutParam) return {};
+    const range = {};
+    let current = new Date(checkInParam);
+    const end = new Date(checkOutParam);
+    while (current <= end) {
+      const dateStr = current.toISOString().split("T")[0];
+      range[dateStr] = {
+        color:
+          dateStr === checkInParam || dateStr === checkOutParam
+            ? colors.accent[500]
+            : colors.accent[300],
+        textColor: "#fff",
+        startingDay: dateStr === checkInParam,
+        endingDay: dateStr === checkOutParam,
+      };
+      current.setDate(current.getDate() + 1);
+    }
+    return range;
+  });
+  // Habitaciones
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [numRooms, setNumRooms] = useState(1);
+
+  const calcRooms = () => {
+    if (!selectedRoom) return 1;
+    return Math.ceil(guests / selectedRoom.capacidad);
+  };
+
+  const calcTotal = () => {
+    if (!selectedRoom || getNights() === 0) return 0;
+    return Number(selectedRoom.precio_base) * getNights() * calcRooms();
+  };
 
   const services = hostel?.servicios ?? [];
   const hasMoreThanPreview = services.length > MAX_SERVICES_PREVIEW;
@@ -128,6 +160,15 @@ export default function HostelDetailScreen() {
       day: "2-digit",
       month: "short",
     });
+  };
+
+  const formatLongDate = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = date.toLocaleDateString("en-GB", { month: "short" });
+    const year = date.getFullYear();
+    return `${day} ${month}. ${year}`;
   };
 
   return (
@@ -306,22 +347,75 @@ export default function HostelDetailScreen() {
 
         <Divider />
 
+        {/* Habitaciones */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Rooms</Text>
+          {hostel?.habitaciones?.map((hab) => (
+            <TouchableOpacity
+              key={hab.id_habitacion}
+              style={[
+                styles.roomCard,
+                !hab.disponibilidad && styles.roomCardDisabled,
+                selectedRoom?.id_habitacion === hab.id_habitacion &&
+                  styles.roomCardSelected,
+              ]}
+              onPress={() => hab.disponibilidad && setSelectedRoom(hab)}
+              disabled={!hab.disponibilidad}
+            >
+              <View style={styles.roomInfo}>
+                <View style={styles.roomHeader}>
+                  <Text style={styles.roomTipo}>{hab.tipo}</Text>
+                  {!hab.disponibilidad && (
+                    <View style={styles.badgeOff}>
+                      <Text style={styles.badgeOffText}>No disponible</Text>
+                    </View>
+                  )}
+                  {selectedRoom?.id_habitacion === hab.id_habitacion && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={colors.primary[500]}
+                    />
+                  )}
+                </View>
+                <View style={styles.roomMeta}>
+                  <Ionicons
+                    name="people-outline"
+                    size={13}
+                    color={colors.text.muted}
+                  />
+                  <Text style={styles.roomMetaText}>
+                    Hasta {hab.capacidad} personas
+                  </Text>
+                </View>
+                {hab.descripcion && (
+                  <Text style={styles.roomDesc}>{hab.descripcion}</Text>
+                )}
+              </View>
+              <View style={styles.roomPrice}>
+                <Text style={styles.roomPriceAmount}>{hab.precio_base}€</Text>
+                <Text style={styles.roomPriceLabel}>/ noche</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Divider />
+
         {/* Calendario */}
         <View style={styles.section}>
-          {/* {checkIn && checkOut && ( */}
           <>
             <Text style={styles.nightsTitle}>
               {getNights()} Nights in {hostel?.ciudad?.nombre}
             </Text>
             <Text style={styles.nightsDates}>
-              {checkIn} - {checkOut}
+              {formatLongDate(checkIn)} - {formatLongDate(checkOut)}
             </Text>
           </>
-          {/* )} */}
           <Calendar
             onDayPress={handleDayPress}
             markingType="period"
             markedDates={markedDates}
+            minDate={new Date().toISOString().split("T")[0]}
             theme={{
               backgroundColor: "#FFFFFF",
               calendarBackground: "#FFFFFF",
@@ -353,6 +447,18 @@ export default function HostelDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
+          {selectedRoom && calcRooms() > 1 && (
+            <View style={styles.roomsAlert}>
+              <Ionicons
+                name="information-circle-outline"
+                size={16}
+                color={colors.primary[500]}
+              />
+              <Text style={styles.roomsAlertText}>
+                Necesitas {calcRooms()} habitaciones para {guests} huéspedes
+              </Text>
+            </View>
+          )}
         </View>
 
         <Divider />
@@ -386,18 +492,42 @@ export default function HostelDetailScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <View style={{ gap: 4 }}>
+          <View>
             <Text style={styles.footerPrice}>
-              {hostel?.habitaciones?.[0]?.precio_base ?? "—"} €
+              {calcTotal() > 0 ? `${calcTotal().toFixed(0)} €` : "— €"}
             </Text>
             <Text style={styles.footerNights}>
-              {getNights() > 0
-                ? `${getNights()} nights: ${formatShortDate(checkIn)} - ${formatShortDate(checkOut)}`
-                : "Selecciona fechas"}
+              {selectedRoom && getNights() > 0
+                ? `${getNights()} noches · ${calcRooms()} hab · ${guests} huéspedes`
+                : "Selecciona fechas y habitación"}
             </Text>
             <Text style={styles.footerPolicy}>Non-refundable</Text>
           </View>
-          <TouchableOpacity style={styles.bookBtn}>
+          <TouchableOpacity
+            style={[
+              styles.bookBtn,
+              (!selectedRoom || getNights() === 0) && styles.bookBtnDisabled,
+            ]}
+            disabled={!selectedRoom || getNights() === 0}
+            onPress={() =>
+              router.push({
+                pathname: "/booking/confirm",
+                params: {
+                  hostalNombre: hostel.nombre,
+                  hostalCiudad: hostel.ciudad?.nombre,
+                  habitacionTipo: selectedRoom.tipo,
+                  habitacionPrecio: selectedRoom.precio_base,
+                  checkIn,
+                  checkOut,
+                  guests: String(guests),
+                  numRooms: String(calcRooms()),
+                  total: String(calcTotal().toFixed(0)),
+                  id_habitacion: String(selectedRoom.id_habitacion),
+                  id_hostal: String(id),
+                },
+              })
+            }
+          >
             <Text style={styles.bookBtnText}>Book Now</Text>
           </TouchableOpacity>
         </View>
@@ -550,6 +680,58 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  roomsAlert: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.primary[100],
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 8,
+  },
+  roomsAlertText: { fontSize: 13, color: colors.primary[600], flex: 1 },
+
+  // Habitaciones
+  roomCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1.5,
+    borderColor: colors.border.default,
+  },
+  roomCardSelected: {
+    borderColor: colors.primary[500],
+    backgroundColor: colors.primary[100],
+  },
+  roomCardDisabled: { opacity: 0.5 },
+  roomInfo: { flex: 1, gap: 6 },
+  roomHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  roomTipo: { fontSize: 15, fontWeight: "700", color: colors.text.primary },
+  roomMeta: { flexDirection: "row", alignItems: "center", gap: 4 },
+  roomMetaText: { fontSize: 12, color: colors.text.muted },
+  roomDesc: { fontSize: 12, color: colors.text.secondary },
+  roomPrice: { alignItems: "flex-end" },
+  roomPriceAmount: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: colors.primary[600],
+  },
+  roomPriceLabel: { fontSize: 11, color: colors.text.muted },
+  badgeOff: {
+    backgroundColor: "#FEE8E8",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  badgeOffText: { fontSize: 11, color: colors.error, fontWeight: "600" },
+
   // Footer
   footer: {
     flexDirection: "row",
@@ -575,4 +757,5 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   bookBtnText: { color: "#FFFFFF", fontWeight: "700", fontSize: 16 },
+  bookBtnDisabled: { backgroundColor: colors.text.muted },
 });
