@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   overlayPlain: {
-    backgroundColor: colors.background.light,
+    backgroundColor: "rgba(0, 0, 0, 0.46)",
   },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   topBar: {

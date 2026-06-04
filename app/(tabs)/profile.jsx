@@ -62,12 +62,11 @@ export default function ProfileScreen() {
     >
       {/* Top bar */}
       <View style={styles.topBar}>
-        <TouchableOpacity style={styles.iconBtn}>
-          <Ionicons
-            name="heart-outline"
-            size={25}
-            color={colors.primary[600]}
-          />
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => router.push("/post/create")}
+        >
+          <Ionicons name="add" size={25} color={colors.primary[600]} />
         </TouchableOpacity>
 
         {/* Avatar */}
