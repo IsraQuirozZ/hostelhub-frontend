@@ -18,5 +18,6 @@ export const colors = {
   border: { default: "#E5E0D8", input: "#CEC8C0" },
   success: "#2EBF8A",
   warning: "#F0B429",
+  warningText: "#5B2C0F",
   error: "#E85555",
 };
