@@ -15,8 +15,10 @@ import { postService } from "../../services/post.service";
 import PostCardSm from "../../components/PostCardSm";
 import { ScrollView } from "react-native";
 import Divider from "../../components/ui/Divider";
+import { useRouter } from "expo-router";
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const { logout } = useAuth();
   const insets = useSafeAreaInsets();
   const [user, setUser] = useState(null);
@@ -80,11 +82,13 @@ export default function ProfileScreen() {
             {[age ? `${age} years` : null, user?.nacionalidad]
               .filter(Boolean)
               .join(", ")}
-            25 years, México
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => router.push("/profile/edit")}
+        >
           <Ionicons
             name="settings-outline"
             size={25}
