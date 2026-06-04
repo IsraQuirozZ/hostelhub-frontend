@@ -78,7 +78,7 @@ export default function HostelsScreen() {
           style={styles.hero}
           imageStyle={styles.heroImage}
         >
-          <Pressable style={styles.backBtn} onPress={() => router.back()}>
+          <Pressable style={styles.backBtn} onPress={() => router.push("/")}>
             <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
           </Pressable>
           <View style={styles.heroOverlay}>
@@ -119,10 +119,14 @@ export default function HostelsScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 30, alignItems: "center" }}
+            contentContainerStyle={{ gap: 20, alignItems: "center" }}
           >
             {posts.map((p) => (
-              <PostCard key={p.id_post} post={p} />
+              <PostCard
+                key={p.id_post}
+                post={p}
+                onPress={() => router.push(`/post/${p.id_post}?from=hostels`)}
+              />
             ))}
           </ScrollView>
         )}
