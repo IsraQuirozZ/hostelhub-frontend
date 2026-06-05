@@ -36,7 +36,9 @@ export default function HostelCard({ hostel, index = 0 }) {
           <View style={styles.row}>
             <Ionicons name="star" size={13} color="#F0B429" />
             <Text style={styles.rating}>{hostel.promedio_rating ?? "—"}</Text>
-            <Text style={styles.capacity}>· {hostel.capacidad} personas</Text>
+            <Text style={styles.capacity}>
+              · {hostel._count?.ratings ?? 0} personas
+            </Text>
           </View>
         </View>
       </View>

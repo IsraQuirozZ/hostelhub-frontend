@@ -34,5 +34,5 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   pressed: { opacity: 0.7 },
-  text: { color: "#FFFFFF", fontWeight: "700", fontSize: 16 },
+  text: { color: "#FFFFFF", fontWeight: "700", fontSize: 18 },
 });

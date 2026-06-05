@@ -79,7 +79,7 @@ export default function PaymentScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={20} color={colors.primary[600]} />
+          <Ionicons name="arrow-back" size={25} color={"#FFFFFF"} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Payment</Text>
         <View style={{ width: 38 }} />
@@ -191,21 +191,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
+    paddingTop: 40,
+    paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.primary[100],
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#0000004a",
     alignItems: "center",
     justifyContent: "center",
   },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: colors.text.primary },
-  content: { padding: 16, paddingBottom: 20 },
+  headerTitle: { fontSize: 24, fontWeight: "700", color: colors.primary[600] },
+  content: { padding: 20, gap: 4 },
   summaryCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,

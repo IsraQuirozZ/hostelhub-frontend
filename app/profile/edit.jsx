@@ -18,8 +18,10 @@ import CountryPicker from "react-native-country-picker-modal";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Platform } from "react-native";
 import { userService } from "../../services/user.service";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function EditProfileScreen() {
+  const { logout } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
@@ -364,6 +366,13 @@ export default function EditProfileScreen() {
           onPress={handleSave}
           loading={saving}
         />
+
+        <View style={styles.logoutWrapper}>
+          <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
+            <Ionicons name="log-out-outline" size={25} color="#FFFFFF" />
+            <Text style={styles.logoutText}>Log out</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -516,4 +525,19 @@ const styles = StyleSheet.create({
   },
   confirmBtnDisabled: { backgroundColor: colors.text.muted },
   confirmBtnText: { fontSize: 14, color: "#FFFFFF", fontWeight: "700" },
+
+  // Logout
+  logoutWrapper: { marginTop: 8, marginBottom: 20 },
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.error,
+    backgroundColor: colors.error,
+  },
+  logoutText: { fontSize: 18, fontWeight: "700", color: "#FFFFFF" },
 });
