@@ -347,60 +347,6 @@ export default function HostelDetailScreen() {
 
         <Divider />
 
-        {/* Habitaciones */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rooms</Text>
-          {hostel?.habitaciones?.map((hab) => (
-            <TouchableOpacity
-              key={hab.id_habitacion}
-              style={[
-                styles.roomCard,
-                !hab.disponibilidad && styles.roomCardDisabled,
-                selectedRoom?.id_habitacion === hab.id_habitacion &&
-                  styles.roomCardSelected,
-              ]}
-              onPress={() => hab.disponibilidad && setSelectedRoom(hab)}
-              disabled={!hab.disponibilidad}
-            >
-              <View style={styles.roomInfo}>
-                <View style={styles.roomHeader}>
-                  <Text style={styles.roomTipo}>{hab.tipo}</Text>
-                  {!hab.disponibilidad && (
-                    <View style={styles.badgeOff}>
-                      <Text style={styles.badgeOffText}>No disponible</Text>
-                    </View>
-                  )}
-                  {selectedRoom?.id_habitacion === hab.id_habitacion && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={20}
-                      color={colors.primary[500]}
-                    />
-                  )}
-                </View>
-                <View style={styles.roomMeta}>
-                  <Ionicons
-                    name="people-outline"
-                    size={13}
-                    color={colors.text.muted}
-                  />
-                  <Text style={styles.roomMetaText}>
-                    Hasta {hab.capacidad} personas
-                  </Text>
-                </View>
-                {hab.descripcion && (
-                  <Text style={styles.roomDesc}>{hab.descripcion}</Text>
-                )}
-              </View>
-              <View style={styles.roomPrice}>
-                <Text style={styles.roomPriceAmount}>{hab.precio_base}€</Text>
-                <Text style={styles.roomPriceLabel}>/ noche</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <Divider />
-
         {/* Calendario */}
         <View style={styles.section}>
           <>
@@ -459,6 +405,61 @@ export default function HostelDetailScreen() {
               </Text>
             </View>
           )}
+        </View>
+
+        <Divider />
+
+        {/* Habitaciones */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Rooms</Text>
+          {hostel?.habitaciones?.map((hab) => (
+            <TouchableOpacity
+              key={hab.id_habitacion}
+              style={[
+                styles.roomCard,
+                !hab.disponibilidad && styles.roomCardDisabled,
+                selectedRoom?.id_habitacion === hab.id_habitacion &&
+                  styles.roomCardSelected,
+              ]}
+              onPress={() => hab.disponibilidad && setSelectedRoom(hab)}
+              disabled={!hab.disponibilidad}
+            >
+              <View style={styles.roomInfo}>
+                <View style={styles.roomHeader}>
+                  <Text style={styles.roomTipo}>{hab.tipo}</Text>
+                  {!hab.disponibilidad && (
+                    <View style={styles.badgeOff}>
+                      <Text style={styles.badgeOffText}>No disponible</Text>
+                    </View>
+                  )}
+                  {selectedRoom?.id_habitacion === hab.id_habitacion && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={colors.primary[500]}
+                    />
+                  )}
+                </View>
+                <View style={styles.roomMeta}>
+                  <Ionicons
+                    name="people-outline"
+                    size={13}
+                    color={colors.text.muted}
+                  />
+                  <Text style={styles.roomMetaText}>
+                    Hasta {hab.capacidad} personas
+                  </Text>
+                </View>
+                {hab.descripcion && (
+                  <Text style={styles.roomDesc}>{hab.descripcion}</Text>
+                )}
+              </View>
+              <View style={styles.roomPrice}>
+                <Text style={styles.roomPriceAmount}>{hab.precio_base}€</Text>
+                <Text style={styles.roomPriceLabel}>/ noche</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
         <Divider />
@@ -757,5 +758,12 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   bookBtnText: { color: "#FFFFFF", fontWeight: "700", fontSize: 16 },
-  bookBtnDisabled: { backgroundColor: colors.text.muted },
+  bookBtnDisabled: {
+    backgroundColor: colors.text.muted,
+    shadowColor: colors.text.muted,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.38,
+    shadowRadius: 18,
+    elevation: 10,
+  },
 });

@@ -67,7 +67,9 @@ export default function HostelCardLg({
           <View style={styles.ratingRow}>
             <Ionicons name="star" size={18} color="#F0B429" />
             <Text style={styles.rating}>{rating}</Text>
-            <Text style={styles.reviews}>({rating ?? "—"} reviews)</Text>
+            <Text style={styles.reviews}>
+              ({hostel._count?.ratings ?? 0} reviews)
+            </Text>
           </View>
 
           {/* Servicios */}

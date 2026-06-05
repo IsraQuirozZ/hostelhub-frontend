@@ -2,14 +2,23 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../constants/colors";
 import { reservaService } from "../../services/reserva.service";
+import { reviewService } from "../../services/review.service";
+import Swipeable from "react-native-gesture-handler/Swipeable";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import * as Haptics from "expo-haptics";
+import { useRef } from "react";
+import { useRouter } from "expo-router";
 
 const formatDate = (date) =>
   new Date(date).toLocaleDateString("en-GB", {
@@ -19,9 +28,20 @@ const formatDate = (date) =>
   });
 
 export default function ReservasScreen() {
+  const router = useRouter();
+
+  const swipeableRefs = useRef({});
   const insets = useSafeAreaInsets();
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedReserva, setSelectedReserva] = useState(null);
+  const [reviewForm, setReviewForm] = useState({
+    puntuacion: 5,
+    contenido: "",
+  });
+  const [savingReview, setSavingReview] = useState(false);
 
   useEffect(() => {
     reservaService
@@ -39,132 +59,205 @@ export default function ReservasScreen() {
     );
   }
 
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Bookings</Text>
-      </View>
+  const handleReview = async () => {
+    setSavingReview(true);
+    try {
+      await reviewService.createReview(
+        selectedReserva.habitaciones[0].habitacion.hostal.id_hostal,
+        reviewForm,
+      );
+      setShowReviewModal(false);
+      setReviewForm({ puntuacion: 5, contenido: "" });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingReview(false);
+    }
+  };
 
-      {reservas.length === 0 ? (
-        <View style={styles.center}>
-          <Ionicons
-            name="calendar-outline"
-            size={48}
-            color={colors.text.muted}
-          />
-          <Text style={styles.emptyTitle}>No bookings yet</Text>
-          <Text style={styles.emptyText}>
-            Your reservations will appear here
-          </Text>
+  const renderRightActions = (reserva) => {
+    const hab = reserva.habitaciones?.[0]?.habitacion;
+    if (reserva.estado !== "completada") return null;
+    return (
+      <View style={styles.swipeAction}>
+        <Ionicons name="star" size={24} color="#FFFFFF" />
+        <Text style={styles.swipeActionText}>Review</Text>
+      </View>
+    );
+  };
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>My Bookings</Text>
         </View>
-      ) : (
-        <ScrollView
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-        >
-          {reservas.map((reserva) => {
-            const hab = reserva.habitaciones?.[0]?.habitacion;
-            return (
-              <View key={reserva.id_reserva} style={styles.card}>
-                {/* Hostal info */}
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardIcon}>
-                    <Ionicons name="bed-outline" size={25} color={"#ffffff"} />
-                  </View>
-                  <View style={styles.cardInfo}>
-                    <Text style={styles.hostalNombre}>
-                      {hab?.hostal?.nombre}
-                    </Text>
-                    <View style={styles.row}>
-                      <Ionicons
-                        name="location-outline"
-                        size={12}
-                        color={colors.text.muted}
-                      />
-                      <Text style={styles.ciudad}>
-                        {hab?.hostal?.ciudad?.nombre}
-                      </Text>
+
+        {reservas.length === 0 ? (
+          <View style={styles.center}>
+            <Ionicons
+              name="calendar-outline"
+              size={48}
+              color={colors.text.muted}
+            />
+            <Text style={styles.emptyTitle}>No bookings yet</Text>
+            <Text style={styles.emptyText}>
+              Your reservations will appear here
+            </Text>
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            onScrollBeginDrag={() => {
+              Object.values(swipeableRefs.current).forEach((ref) =>
+                ref?.close(),
+              );
+            }}
+          >
+            {reservas.map((reserva) => {
+              const hab = reserva.habitaciones?.[0]?.habitacion;
+              const estado = (reserva.estado || "").toLowerCase();
+              const isConfirmada = estado === "confirmada";
+              const isCompletada = estado === "completada";
+              return (
+                <Swipeable
+                  key={reserva.id_reserva}
+                  ref={(ref) => {
+                    swipeableRefs.current[reserva.id_reserva] = ref;
+                  }}
+                  renderRightActions={() => renderRightActions(reserva)}
+                  onSwipeableOpen={() => {
+                    Object.entries(swipeableRefs.current).forEach(
+                      ([key, ref]) => {
+                        if (String(key) !== String(reserva.id_reserva))
+                          ref?.close();
+                      },
+                    );
+                    if (reserva.estado === "completada") {
+                      Haptics.notificationAsync(
+                        Haptics.NotificationFeedbackType.Success,
+                      );
+                      const hab = reserva.habitaciones?.[0]?.habitacion;
+                      router.push({
+                        pathname: "/review/create",
+                        params: {
+                          id_hostal: String(hab?.hostal?.id_hostal),
+                          hostalNombre: hab?.hostal?.nombre,
+                        },
+                      });
+                    }
+                  }}
+                >
+                  <View key={reserva.id_reserva} style={styles.card}>
+                    {/* Hostal info */}
+                    <View style={styles.cardHeader}>
+                      <View style={styles.cardIcon}>
+                        <Ionicons
+                          name="bed-outline"
+                          size={25}
+                          color={"#ffffff"}
+                        />
+                      </View>
+                      <View style={styles.cardInfo}>
+                        <Text style={styles.hostalNombre}>
+                          {hab?.hostal?.nombre}
+                        </Text>
+                        <View style={styles.row}>
+                          <Ionicons
+                            name="location-outline"
+                            size={12}
+                            color={colors.text.muted}
+                          />
+                          <Text style={styles.ciudad}>
+                            {hab?.hostal?.ciudad?.nombre}
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        style={[
+                          styles.badge,
+                          isCompletada
+                            ? styles.badgeCompletada
+                            : isConfirmada
+                              ? styles.badgeConfirmada
+                              : styles.badgePendiente,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.badgeText,
+                            {
+                              color: isCompletada
+                                ? colors.success
+                                : isConfirmada
+                                  ? colors.info
+                                  : colors.warning,
+                            },
+                          ]}
+                        >
+                          {reserva.estado}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.divider} />
+
+                    {/* Detalles */}
+                    <View style={styles.details}>
+                      <View style={styles.detailItem}>
+                        <Ionicons
+                          name="calendar-outline"
+                          size={14}
+                          color={colors.text.muted}
+                        />
+                        <Text style={styles.detailText}>
+                          {formatDate(reserva.fecha_inicio)}
+                        </Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={14}
+                          color={colors.text.muted}
+                        />
+                        <Text style={styles.detailText}>
+                          {formatDate(reserva.fecha_fin)}
+                        </Text>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <Ionicons
+                          name="people-outline"
+                          size={14}
+                          color={colors.text.muted}
+                        />
+                        <Text style={styles.detailText}>
+                          {reserva.num_personas} guests
+                        </Text>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <Ionicons
+                          name="home-outline"
+                          size={14}
+                          color={colors.text.muted}
+                        />
+                        <Text style={styles.detailText}>{hab?.tipo}</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.divider} />
+
+                    {/* Total */}
+                    <View style={styles.totalRow}>
+                      <Text style={styles.totalLabel}>Total pagado</Text>
+                      <Text style={styles.totalValue}>{reserva.total}€</Text>
                     </View>
                   </View>
-                  <View
-                    style={[
-                      styles.badge,
-                      reserva.estado === "confirmada"
-                        ? styles.badgeConfirmada
-                        : styles.badgePendiente,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.badgeText,
-                        {
-                          color:
-                            reserva.estado === "confirmada"
-                              ? colors.success
-                              : colors.warning,
-                        },
-                      ]}
-                    >
-                      {reserva.estado}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.divider} />
-
-                {/* Detalles */}
-                <View style={styles.details}>
-                  <View style={styles.detailItem}>
-                    <Ionicons
-                      name="calendar-outline"
-                      size={14}
-                      color={colors.text.muted}
-                    />
-                    <Text style={styles.detailText}>
-                      {formatDate(reserva.fecha_inicio)}
-                    </Text>
-                    <Ionicons
-                      name="arrow-forward"
-                      size={14}
-                      color={colors.text.muted}
-                    />
-                    <Text style={styles.detailText}>
-                      {formatDate(reserva.fecha_fin)}
-                    </Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Ionicons
-                      name="people-outline"
-                      size={14}
-                      color={colors.text.muted}
-                    />
-                    <Text style={styles.detailText}>
-                      {reserva.num_personas} guests
-                    </Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Ionicons
-                      name="home-outline"
-                      size={14}
-                      color={colors.text.muted}
-                    />
-                    <Text style={styles.detailText}>{hab?.tipo}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.divider} />
-
-                {/* Total */}
-                <View style={styles.totalRow}>
-                  <Text style={styles.totalLabel}>Total pagado</Text>
-                  <Text style={styles.totalValue}>{reserva.total}€</Text>
-                </View>
-              </View>
-            );
-          })}
-        </ScrollView>
-      )}
-    </View>
+                </Swipeable>
+              );
+            })}
+          </ScrollView>
+        )}
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -172,13 +265,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background.light },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8 },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: 40,
+    paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.default,
   },
-  headerTitle: { fontSize: 22, fontWeight: "800", color: colors.text.primary },
+  headerTitle: { fontSize: 24, fontWeight: "700", color: colors.primary[600] },
   list: { padding: 16, gap: 14 },
   card: {
     backgroundColor: "#FFFFFF",
@@ -201,7 +295,8 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 4 },
   ciudad: { fontSize: 12, color: colors.text.muted },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  badgeConfirmada: { backgroundColor: "#E8F8F0" },
+  badgeConfirmada: { backgroundColor: colors.info + "22" },
+  badgeCompletada: { backgroundColor: colors.success + "22" },
   badgePendiente: { backgroundColor: colors.warning + "33" },
   badgeText: { fontSize: 11, fontWeight: "700" },
   divider: {
@@ -221,4 +316,19 @@ const styles = StyleSheet.create({
   totalValue: { fontSize: 16, fontWeight: "800", color: colors.primary[600] },
   emptyTitle: { fontSize: 18, fontWeight: "700", color: colors.text.primary },
   emptyText: { fontSize: 14, color: colors.text.muted },
+
+  swipeAction: {
+    backgroundColor: colors.primary[500],
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    borderRadius: 16,
+    marginLeft: 8,
+  },
+  swipeActionText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 4,
+  },
 });

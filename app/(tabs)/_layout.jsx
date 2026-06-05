@@ -34,20 +34,20 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="favoritos"
-        options={{
-          title: "Favoritos",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="reservas"
         options={{
           title: "Reservas",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="chats"
+        options={{
+          title: "Chats",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="chatbubbles-outline" size={size} color={color} />
           ),
         }}
       />

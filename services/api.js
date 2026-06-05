@@ -20,7 +20,11 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const message = error.response?.data?.message || "Error de red";
+    const data = error.response?.data;
+    const message =
+      data?.message ||
+      (data?.errors && Object.values(data.errors).flat()[0]) ||
+      "Error de red";
     return Promise.reject(new Error(message));
   },
 );

@@ -25,4 +25,9 @@ export const reservaService = {
     const { data } = await api.post(`/reservations/${id_reserva}/confirmar`);
     return data.data;
   },
+
+  async completeReserva(id_reserva) {
+    const { data } = await api.put(`/reservas/${id_reserva}/complete`);
+    return data.data;
+  },
 };
