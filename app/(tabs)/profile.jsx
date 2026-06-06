@@ -6,23 +6,25 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../constants/colors";
-import { useAuth } from "../../hooks/useAuth";
 import api from "../../services/api";
 import { postService } from "../../services/post.service";
 import PostCardSm from "../../components/PostCardSm";
 import { ScrollView } from "react-native";
 import Divider from "../../components/ui/Divider";
 import { useRouter } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import * as Haptics from "expo-haptics";
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { logout } = useAuth();
   const insets = useSafeAreaInsets();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
   // Posts
   const [posts, setPosts] = useState([]);
 
@@ -52,92 +54,123 @@ export default function ProfileScreen() {
 
   const age = getAge(user?.fecha_nacimiento);
 
+  const handleDelete = async (id_post) => {
+    try {
+      await postService.deletePost(id_post);
+      setPosts((prev) => prev.filter((p) => p.id_post !== id_post));
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
-    <ScrollView
-      style={[styles.container, { paddingTop: insets.top }]}
-      contentContainerStyle={{
-        paddingBottom: 30,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Top bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.iconBtn}
-          onPress={() => router.push("/post/create")}
-        >
-          <Ionicons name="add" size={25} color={colors.primary[600]} />
-        </TouchableOpacity>
-
-        {/* Avatar */}
-        <View style={styles.avatarSection}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.nombre?.slice(0, 2).toUpperCase() ?? "??"}
-            </Text>
-          </View>
-          <Text style={styles.nombre}>{user?.nombre}</Text>
-          <Text style={styles.meta}>
-            {[age ? `${age} years` : null, user?.nacionalidad]
-              .filter(Boolean)
-              .join(", ")}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.iconBtn}
-          onPress={() => router.push("/profile/edit")}
-        >
-          <Ionicons
-            name="settings-outline"
-            size={25}
-            color={colors.primary[600]}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Stats */}
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <Ionicons
-            name="globe-outline"
-            size={30}
-            color={colors.primary[500]}
-          />
-          <View>
-            <Text style={styles.statNumber}>
-              {user?._count?.paises_visitados ?? 0}
-            </Text>
-            <Text style={styles.statLabel}>Countries</Text>
-          </View>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Ionicons name="bed-outline" size={30} color={colors.accent[500]} />
-          <View>
-            <Text style={styles.statNumber}>
-              {user?._count?.reservas_confirmadas ?? 0}
-            </Text>
-            <Text style={styles.statLabel}>Hostels</Text>
-          </View>
-        </View>
-      </View>
-
-      <Divider />
-
-      {/* My Posts */}
-      {/* My Posts */}
-      <View style={styles.feed}>
-        {posts.map((post) => (
-          <View
-            key={post.id_post}
-            style={post.foto_url ? styles.oneCol : styles.twoCol}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ScrollView
+        style={[styles.container, { paddingTop: insets.top }]}
+        contentContainerStyle={{
+          paddingBottom: 30,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Top bar */}
+        <View style={styles.topBar}>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => router.push("/post/create")}
           >
-            <PostCardSm post={post} />
+            <Ionicons name="add" size={25} color={colors.primary[600]} />
+          </TouchableOpacity>
+
+          {/* Avatar */}
+          <View style={styles.avatarSection}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user?.nombre?.slice(0, 2).toUpperCase() ?? "??"}
+              </Text>
+            </View>
+            <Text style={styles.nombre}>{user?.nombre}</Text>
+            <Text style={styles.meta}>
+              {[age ? `${age} years` : null, user?.nacionalidad]
+                .filter(Boolean)
+                .join(", ")}
+            </Text>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => router.push("/profile/edit")}
+          >
+            <Ionicons
+              name="settings-outline"
+              size={25}
+              color={colors.primary[600]}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Stats */}
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Ionicons
+              name="globe-outline"
+              size={30}
+              color={colors.primary[500]}
+            />
+            <View>
+              <Text style={styles.statNumber}>
+                {user?._count?.paises_visitados ?? 0}
+              </Text>
+              <Text style={styles.statLabel}>Countries</Text>
+            </View>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Ionicons name="bed-outline" size={30} color={colors.accent[500]} />
+            <View>
+              <Text style={styles.statNumber}>
+                {user?._count?.reservas_confirmadas ?? 0}
+              </Text>
+              <Text style={styles.statLabel}>Hostels</Text>
+            </View>
+          </View>
+        </View>
+
+        <Divider />
+
+        {/* My Posts */}
+        <View style={styles.feed}>
+          {posts.map((post) => (
+            <View
+              key={post.id_post}
+              style={post.foto_url ? styles.oneCol : styles.twoCol}
+            >
+              <PostCardSm
+                post={post}
+                onPress={() =>
+                  router.push(`/post/${post.id_post}?from=profile`)
+                }
+                onLongPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  Alert.alert(
+                    "Delete post",
+                    "¿Estás seguro de que quieres eliminar este post?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Delete",
+                        style: "destructive",
+                        onPress: () => handleDelete(post.id_post),
+                      },
+                    ],
+                  );
+                }}
+              />
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </GestureHandlerRootView>
   );
 }
 
@@ -211,6 +244,4 @@ const styles = StyleSheet.create({
   },
   oneCol: { width: "31%" },
   twoCol: { width: "65%" },
-  fullWidth: { width: "100%" },
-  halfWidth: { width: "48%" },
 });

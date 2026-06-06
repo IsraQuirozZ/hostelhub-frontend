@@ -71,7 +71,7 @@ export default function PostDetailScreen() {
 
         {/* Botón */}
         <View style={styles.footer}>
-          <ButtonFull title="View on Map" onPress={() => {}} />
+          {/* <ButtonFull title="View on Map" onPress={() => {}} /> */}
         </View>
       </View>
     </ImageBackground>

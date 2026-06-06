@@ -76,12 +76,45 @@ export default function ReservasScreen() {
   };
 
   const renderRightActions = (reserva) => {
-    const hab = reserva.habitaciones?.[0]?.habitacion;
-    if (reserva.estado !== "completada") return null;
+    const estado = reserva.estado?.toLowerCase();
+    if (estado === "pendiente" || estado === "cancelada") return null;
+
     return (
-      <View style={styles.swipeAction}>
-        <Ionicons name="star" size={24} color="#FFFFFF" />
-        <Text style={styles.swipeActionText}>Review</Text>
+      <View style={styles.swipeActions}>
+        <TouchableOpacity
+          style={[styles.swipeAction, styles.swipeActionRuta]}
+          onPress={() =>
+            router.push({
+              pathname: `/ruta/${reserva.id_reserva}`,
+              params: { id_reserva: reserva.id_reserva },
+            })
+          }
+        >
+          <Ionicons name="map-outline" size={22} color="#FFFFFF" />
+          <Text style={styles.swipeActionText}>Route</Text>
+        </TouchableOpacity>
+
+        {reserva.estado === "completada" && (
+          <TouchableOpacity
+            style={[styles.swipeAction, styles.swipeActionReview]}
+            onPress={() => {
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success,
+              );
+              const hab = reserva.habitaciones?.[0]?.habitacion;
+              router.push({
+                pathname: "/review/create",
+                params: {
+                  id_hostal: String(hab?.hostal?.id_hostal),
+                  hostalNombre: hab?.hostal?.nombre,
+                },
+              });
+            }}
+          >
+            <Ionicons name="star-outline" size={22} color="#FFFFFF" />
+            <Text style={styles.swipeActionText}>Review</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -134,19 +167,6 @@ export default function ReservasScreen() {
                           ref?.close();
                       },
                     );
-                    if (reserva.estado === "completada") {
-                      Haptics.notificationAsync(
-                        Haptics.NotificationFeedbackType.Success,
-                      );
-                      const hab = reserva.habitaciones?.[0]?.habitacion;
-                      router.push({
-                        pathname: "/review/create",
-                        params: {
-                          id_hostal: String(hab?.hostal?.id_hostal),
-                          hostalNombre: hab?.hostal?.nombre,
-                        },
-                      });
-                    }
                   }}
                 >
                   <View key={reserva.id_reserva} style={styles.card}>
@@ -317,18 +337,21 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 18, fontWeight: "700", color: colors.text.primary },
   emptyText: { fontSize: 14, color: colors.text.muted },
 
-  swipeAction: {
-    backgroundColor: colors.primary[500],
-    justifyContent: "center",
-    alignItems: "center",
-    width: 80,
-    borderRadius: 16,
+  // Swipe
+  swipeActions: {
+    flexDirection: "row",
+    gap: 8,
+    // alignItems: "center",
     marginLeft: 8,
   },
-  swipeActionText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "700",
-    marginTop: 4,
+  swipeAction: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 70,
+    borderRadius: 16,
+    gap: 4,
   },
+  swipeActionRuta: { backgroundColor: colors.primary[500] },
+  swipeActionReview: { backgroundColor: colors.accent[500] },
+  swipeActionText: { color: "#FFFFFF", fontSize: 11, fontWeight: "700" },
 });

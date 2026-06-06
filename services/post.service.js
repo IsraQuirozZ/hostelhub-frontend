@@ -25,4 +25,9 @@ export const postService = {
     const { data } = await api.post("/posts", postData);
     return data;
   },
+
+  async deletePost(id_post) {
+    const { data } = await api.delete(`/posts/${id_post}`);
+    return data.data;
+  },
 };

@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+  Alert,
   ActivityIndicator,
   ScrollView,
   StyleSheet,
@@ -16,6 +17,9 @@ import { Input } from "../../components/ui/Input";
 import ButtonFull from "../../components/ui/ButtonFull";
 import { postService } from "../../services/post.service";
 import { hostelService } from "../../services/hostel.service";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "react-native";
+import { cloudinaryService } from "../../services/cloudinary.service";
 
 export default function CreatePostScreen() {
   const router = useRouter();
@@ -27,6 +31,27 @@ export default function CreatePostScreen() {
   const [selectedCity, setSelectedCity] = useState(null);
   const [citySearch, setCitySearch] = useState("");
   const [showCityPicker, setShowCityPicker] = useState(false);
+
+  // CLoudinary
+  const [imageUri, setImageUri] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permiso denegado", "Necesitamos acceso a tu galería");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
 
   const [form, setForm] = useState({
     titulo: "",
@@ -61,20 +86,23 @@ export default function CreatePostScreen() {
   };
 
   const handleSubmit = async () => {
-    console.log(form);
     if (!validate()) return;
     setSaving(true);
     try {
+      let foto_url = form.foto_url || undefined;
+      if (imageUri) {
+        setUploadingImage(true);
+        foto_url = await cloudinaryService.uploadImage(imageUri);
+        setUploadingImage(false);
+      }
       await postService.createPost({
         titulo: form.titulo.trim(),
         contenido: form.contenido.trim(),
-
         ...(selectedCity?.isNew
           ? { nombre_ciudad: selectedCity.nombre }
-          : { id_ciudad: selectedCity?.id_ciudad }),
-
+          : { id_ciudad: selectedCity?.id_ciudad ?? undefined }),
         nombre_lugar: form.nombre_lugar || undefined,
-        foto_url: form.foto_url || undefined,
+        foto_url,
         promedio_rating: Number(form.promedio_rating),
       });
       router.push("/(tabs)/profile");
@@ -82,6 +110,7 @@ export default function CreatePostScreen() {
       console.error(err);
     } finally {
       setSaving(false);
+      setUploadingImage(false);
     }
   };
 
@@ -235,14 +264,26 @@ export default function CreatePostScreen() {
           onChangeText={set("nombre_lugar")}
         />
 
-        <Input
-          label="Photo URL (optional)"
-          iconName="image-outline"
-          placeholder="https://..."
-          value={form.foto_url}
-          onChangeText={set("foto_url")}
-          autoCapitalize="none"
-        />
+        {/* Foto */}
+        <View style={styles.fieldWrapper}>
+          <Text style={styles.fieldLabel}>Photo (optional)</Text>
+          <TouchableOpacity style={styles.imagePickerBtn} onPress={pickImage}>
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Ionicons
+                  name="camera-outline"
+                  size={28}
+                  color={colors.text.muted}
+                />
+                <Text style={styles.imagePlaceholderText}>
+                  Tap to select a photo
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
 
         {/* Rating */}
         <View style={styles.fieldWrapper}>
@@ -348,4 +389,20 @@ const styles = StyleSheet.create({
   },
 
   starsRow: { flexDirection: "row", gap: 8, marginTop: 4 },
+
+  // Cloudinary
+  imagePickerBtn: { borderRadius: 14, overflow: "hidden" },
+  imagePreview: { width: "100%", aspectRatio: 1, borderRadius: 14 },
+  imagePlaceholder: {
+    height: 140,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.border.default,
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  imagePlaceholderText: { fontSize: 14, color: colors.text.muted },
 });

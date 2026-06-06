@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { colors } from "../constants/colors";
 import { useRouter } from "expo-router";
 
-export default function PostCardSm({ post }) {
+export default function PostCardSm({ post, onPress, onLongPress }) {
   const { titulo, contenido, promedio_rating, foto_url, ciudad } = post;
   const stars = Math.round(promedio_rating ?? 0);
 
@@ -11,9 +11,7 @@ export default function PostCardSm({ post }) {
 
   if (foto_url) {
     return (
-      <TouchableOpacity
-        onPress={() => router.push(`/post/${post.id_post}?from=profile`)}
-      >
+      <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
         <Image
           source={{ uri: foto_url }}
           style={styles.imageOnly}
@@ -24,9 +22,7 @@ export default function PostCardSm({ post }) {
   }
 
   return (
-    <TouchableOpacity
-      onPress={() => router.push(`/post/${post.id_post}?from=profile`)}
-    >
+    <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
       <View style={styles.card}>
         <View style={styles.body}>
           <View style={styles.header}>
