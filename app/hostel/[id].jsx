@@ -525,6 +525,7 @@ export default function HostelDetailScreen() {
                   total: String(calcTotal().toFixed(0)),
                   id_habitacion: String(selectedRoom.id_habitacion),
                   id_hostal: String(id),
+                  habitacionCapacidad: String(selectedRoom.capacidad),
                 },
               })
             }

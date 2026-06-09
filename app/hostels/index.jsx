@@ -22,7 +22,7 @@ const CITY_IMAGES = {
   Madrid: require("../../assets/images/cities/madrid.jpg"),
   Barcelona: require("../../assets/images/cities/barcelona.jpg"),
   Londres: require("../../assets/images/cities/londres.jpg"),
-  París: require("../../assets/images/cities/paris.jpg"),
+  Paris: require("../../assets/images/cities/paris.jpg"),
   Roma: require("../../assets/images/cities/roma.jpg"),
 };
 

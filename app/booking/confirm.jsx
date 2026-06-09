@@ -36,6 +36,7 @@ export default function BookingConfirmScreen() {
     total,
     id_habitacion,
     id_hostal,
+    habitacionCapacidad,
   } = useLocalSearchParams();
 
   const [localCheckIn, setLocalCheckIn] = useState(checkIn);
@@ -54,7 +55,7 @@ export default function BookingConfirmScreen() {
     const nights = Math.round(
       (new Date(co) - new Date(ci)) / (1000 * 60 * 60 * 24),
     );
-    const rooms = Math.ceil(g / Number(numRooms));
+    const rooms = Math.ceil(g / Number(habitacionCapacidad));
     setLocalTotal(Number(habitacionPrecio) * nights * rooms);
   };
 
